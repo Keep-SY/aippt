@@ -1,0 +1,152 @@
+@import './tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+ * Base
+ * ============================================================ */
+@layer base {
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-canvas text-ink-900 font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: rgb(var(--brand-500) / 0.22);
+    color: rgb(var(--ink-900));
+  }
+
+  /* 自定义滚动条（细而隐） */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--ink-900) / 0.12);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--ink-900) / 0.22);
+    background-clip: padding-box;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ============================================================
+ * Components — 复用语义化类
+ * ============================================================ */
+@layer components {
+  /* 玻璃面板 */
+  .glass {
+    @apply bg-surface/70 backdrop-blur-glass border border-hairline/10;
+  }
+  .dark .glass {
+    @apply bg-surface/40 border-white/10;
+  }
+
+  .glass-strong {
+    @apply bg-surface/90 backdrop-blur-glass border border-hairline/10 shadow-md;
+  }
+  .dark .glass-strong {
+    @apply bg-surface/70 border-white/10;
+  }
+
+  /* Hairline 分割线 */
+  .hairline {
+    @apply border-hairline/10;
+  }
+  .dark .hairline {
+    @apply border-white/10;
+  }
+
+  /* 渐变文字 */
+  .text-gradient {
+    background: linear-gradient(135deg, #7c5cff 0%, #4fa8ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Shiny Button —— Landing 主 CTA */
+  .btn-shiny {
+    @apply relative inline-flex items-center justify-center gap-2 px-6 h-12 rounded-md
+           font-medium text-white overflow-hidden select-none
+           transition-all duration-base ease-out
+           shadow-md hover:shadow-lg active:scale-[0.97];
+    background: linear-gradient(135deg, #7c5cff 0%, #4fa8ff 100%);
+  }
+  .btn-shiny::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 h-10 rounded-md
+           text-ink-700 hover:bg-ink-900/[0.04] active:bg-ink-900/[0.08]
+           transition-colors duration-fast;
+  }
+  .dark .btn-ghost {
+    @apply text-ink-700 hover:bg-white/5 active:bg-white/10;
+  }
+
+  /* 输入框 focus ring */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:shadow-glow transition-shadow duration-base;
+  }
+
+  /* Retro grid 背景（透视网格） */
+  .retro-grid {
+    background-image:
+      linear-gradient(rgb(var(--ink-900) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--ink-900) / 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%);
+  }
+
+  /* Beam — 移动光束（绝对定位放在容器内） */
+  .beam {
+    position: absolute;
+    width: 60vw;
+    height: 80vh;
+    background: radial-gradient(
+      closest-side,
+      rgba(124, 92, 255, 0.35),
+      rgba(79, 168, 255, 0.18) 40%,
+      transparent 70%
+    );
+    filter: blur(40px);
+    animation: beam 14s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+}

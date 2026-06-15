@@ -1,0 +1,44 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# 环境变量（含 API key，绝对不进仓库）
+.env
+.env.local
+.env.*.local
+server/.env
+server/.env.local
+
+# Python 虚拟环境与缓存
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 用户级 npm/pnpm 配置（如有），不进仓库
+.npmrc.local
+
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Claude Code 本地状态
+.claude/
