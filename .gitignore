@@ -42,3 +42,5 @@ pnpm-debug.log*
 
 # Claude Code 本地状态
 .claude/
+.nubase/
+.mcp.json
