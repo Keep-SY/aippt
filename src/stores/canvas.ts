@@ -18,6 +18,8 @@ export interface SelectionSnapshot {
   fontSize?: number
   fontFamily?: string
   fontWeight?: string | number
+  fontStyle?: string
+  underline?: boolean
   textAlign?: string
   text?: string
   opacity?: number
@@ -26,6 +28,8 @@ export interface SelectionSnapshot {
   left?: number
   top?: number
   angle?: number
+  /** 单选时对象在 canvas 坐标系下的 bounding rect（用于浮动工具栏定位） */
+  bounds?: { left: number; top: number; width: number; height: number }
 }
 
 export const useCanvasStore = defineStore('canvas', () => {

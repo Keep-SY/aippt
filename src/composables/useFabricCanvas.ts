@@ -32,9 +32,12 @@ export function useFabricCanvas(elRef: Ref<HTMLCanvasElement | null>, opts: Opti
       fontSize?: number
       fontFamily?: string
       fontWeight?: string | number
+      fontStyle?: string
+      underline?: boolean
       textAlign?: string
       text?: string
     }
+    const r = o.getBoundingRect()
     return {
       count: 1,
       type: o.type,
@@ -42,6 +45,8 @@ export function useFabricCanvas(elRef: Ref<HTMLCanvasElement | null>, opts: Opti
       fontSize: o.fontSize,
       fontFamily: o.fontFamily,
       fontWeight: o.fontWeight,
+      fontStyle: o.fontStyle,
+      underline: o.underline,
       textAlign: o.textAlign,
       text: o.text,
       opacity: o.opacity,
@@ -49,7 +54,8 @@ export function useFabricCanvas(elRef: Ref<HTMLCanvasElement | null>, opts: Opti
       height: o.height,
       left: o.left,
       top: o.top,
-      angle: o.angle
+      angle: o.angle,
+      bounds: { left: r.left, top: r.top, width: r.width, height: r.height }
     }
   }
 
@@ -70,6 +76,9 @@ export function useFabricCanvas(elRef: Ref<HTMLCanvasElement | null>, opts: Opti
     fc.on('object:modified', persist)
     fc.on('object:added', persist)
     fc.on('object:removed', persist)
+    fc.on('object:moving', () => canvasStore.setSelection(snapshotSelection()))
+    fc.on('object:scaling', () => canvasStore.setSelection(snapshotSelection()))
+    fc.on('object:rotating', () => canvasStore.setSelection(snapshotSelection()))
     fc.on('text:changed', () => canvasStore.setSelection(snapshotSelection()))
   }
 

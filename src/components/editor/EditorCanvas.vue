@@ -6,6 +6,7 @@ import { useCanvasStore } from '@/stores/canvas'
 import { useFabricCanvas } from '@/composables/useFabricCanvas'
 import { useEditorShortcuts } from '@/composables/useEditorShortcuts'
 import CanvasToolbar from './CanvasToolbar.vue'
+import SelectionFloatingToolbar from './SelectionFloatingToolbar.vue'
 
 const emit = defineEmits<{
   (e: 'ready', api: ReturnType<typeof useFabricCanvas>): void
@@ -44,6 +45,20 @@ onMounted(() => {
   fitZoom()
   emit('ready', api)
 })
+
+/** 浮动工具栏定位：bounds 是 canvas 坐标，乘以 zoom 即得到 wrapper 内偏移 */
+const toolbarStyle = computed(() => {
+  const b = canvasStore.selection.bounds
+  if (!b) return { display: 'none' }
+  const z = canvasStore.zoom
+  const left = (b.left + b.width / 2) * z
+  const top = b.top * z - 44
+  return {
+    left: `${left}px`,
+    top: `${Math.max(top, -8)}px`,
+    transform: 'translateX(-50%)'
+  }
+})
 </script>
 
 <template>
@@ -57,7 +72,7 @@ onMounted(() => {
     <div class="flex-1 flex items-center justify-center min-h-0 min-w-0 overflow-auto">
       <div
         ref="wrapperEl"
-        class="bg-white rounded-md shadow-lg ring-1 ring-hairline/10"
+        class="bg-white rounded-md shadow-lg ring-1 ring-hairline/10 relative"
         :style="{
           width: `${slideSize.width * canvasStore.zoom}px`,
           height: `${slideSize.height * canvasStore.zoom}px`
@@ -72,6 +87,15 @@ onMounted(() => {
           }"
         >
           <canvas ref="canvasEl" />
+        </div>
+
+        <!-- 文本浮动工具栏 -->
+        <div
+          v-show="canvasStore.selection.bounds"
+          class="absolute z-20 pointer-events-auto"
+          :style="toolbarStyle"
+        >
+          <SelectionFloatingToolbar />
         </div>
       </div>
     </div>

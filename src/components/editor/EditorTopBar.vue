@@ -7,6 +7,7 @@ import { useCanvasStore } from '@/stores/canvas'
 import { useThemeStore } from '@/stores/theme'
 import { FabricApiKey } from '@/composables/fabricApiKey'
 import { exportDeckAsPDF, exportDeckAsPPTX, exportSlideAsPNG } from '@/services/export'
+import SlidePresentModal from './SlidePresentModal.vue'
 
 const router = useRouter()
 const deck = useDeckStore()
@@ -17,6 +18,7 @@ const api = inject(FabricApiKey)
 const exportOpen = ref(false)
 const exportRef = ref<HTMLElement | null>(null)
 const exporting = ref<null | 'png' | 'pdf' | 'pptx'>(null)
+const presentOpen = ref(false)
 onClickOutside(exportRef, () => (exportOpen.value = false))
 
 async function doExport(kind: 'png' | 'pdf' | 'pptx') {
@@ -88,7 +90,7 @@ async function doExport(kind: 'png' | 'pdf' | 'pptx') {
     <!-- 右：动作 -->
     <div class="flex items-center gap-2">
       <button class="btn-ghost focus-ring h-9 px-3 text-sm" @click="theme.toggle()">◐</button>
-      <button class="btn-ghost focus-ring h-9 px-3 text-sm" title="演示">▶ 播放</button>
+      <button class="btn-ghost focus-ring h-9 px-3 text-sm" title="演示" @click="presentOpen = true">▶ 播放</button>
 
       <!-- 导出 dropdown -->
       <div ref="exportRef" class="relative">
@@ -142,5 +144,7 @@ async function doExport(kind: 'png' | 'pdf' | 'pptx') {
 
       <div class="w-8 h-8 rounded-full bg-ink-900/10 grid place-items-center text-xs">U</div>
     </div>
+
+    <SlidePresentModal v-model:open="presentOpen" />
   </header>
 </template>
