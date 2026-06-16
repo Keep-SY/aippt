@@ -15,7 +15,7 @@ const previewSlides = studio.outline.sections.slice(0, 3)
 <template>
   <Teleport to="body">
     <div
-      class="fixed inset-0 z-50 grid place-items-center bg-ink-900/40 backdrop-blur-sm"
+      class="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm"
       v-motion
       :initial="{ opacity: 0 }"
       :enter="{ opacity: 1, transition: { duration: 220 } }"

@@ -1,53 +1,60 @@
 /* ============================================================
- * Design Tokens
+ * Design Tokens —— 智演 AI 暗色品牌（参考 public/code.html）
  * 颜色以 "R G B" 三元组写入，配合 Tailwind 的 <alpha-value>
- * 让 bg-brand-500/40 这类透明度语法可用
  * ============================================================ */
 
 :root {
-  /* —— 品牌色：电光紫 → 极光蓝 —— */
-  --brand-400: 155 127 255;
-  --brand-500: 124 92 255;
-  --brand-600: 94 61 229;
+  /* —— 品牌色：青绿 → 翠绿 → 薄荷（深青黑主题） —— */
+  --brand-400: 94 234 212;    /* #5eead4 teal-300 */
+  --brand-500: 45 212 191;    /* #2dd4bf teal-400 */
+  --brand-600: 20 184 166;    /* #14b8a6 teal-500 */
+  --brand-accent2: 110 231 183;  /* #6ee7b7 emerald-300 */
+  --brand-accent3: 167 243 208;  /* #a7f3d0 emerald-200 */
 
-  /* —— 中性墨色（暖灰，避免纯黑） —— */
+  /* —— Ink（暗色环境下：高数值 = 高对比白） —— */
+  --ink-900: 233 240 240;      /* 主文字（略偏冷） */
+  --ink-700: 192 204 208;
+  --ink-500: 138 156 162;      /* 次级 */
+  --ink-300: 84 102 110;        /* muted */
+  --ink-100: 22 36 42;          /* border */
+
+  /* —— 背景层（深青黑） —— */
+  --bg-canvas: 5 12 16;          /* #050c10 深青黑 */
+  --bg-surface: 12 22 28;        /* #0c161c */
+  --bg-elevated: 18 32 40;       /* #122028 */
+  --border-hairline: 22 36 42;   /* #16242a */
+
+  /* —— 语义色 —— */
+  --success: 52 211 153;        /* #34d399 */
+  --warning: 251 191 36;
+  --danger: 239 68 68;
+  --info: 56 189 248;
+
+  /* —— 阴影 / 动效 —— */
+  --shadow-glow: 0 0 0 4px rgba(45, 212, 191, 0.18);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  color-scheme: dark;
+}
+
+/* 兼容旧的 .dark 选择器（与默认相同，避免回归） */
+.dark {
+  color-scheme: dark;
+}
+
+/* 浅色反向（暂保留，未来需要 light mode 时启用） */
+.light {
   --ink-900: 15 18 38;
   --ink-700: 42 47 74;
   --ink-500: 107 112 136;
   --ink-300: 184 188 208;
   --ink-100: 237 238 245;
 
-  /* —— 背景层 —— */
   --bg-canvas: 247 248 252;
   --bg-surface: 255 255 255;
   --bg-elevated: 255 255 255;
-  --border-hairline: 15 18 38; /* 实际使用时配合 /8 透明度 */
-
-  /* —— 语义色 —— */
-  --success: 16 185 129;
-  --warning: 245 158 11;
-  --danger: 239 68 68;
-  --info: 79 168 255;
-
-  /* —— 阴影 / 动效（仅作 CSS 变量，Tailwind 已镜像配置） —— */
-  --shadow-glow: 0 0 0 4px rgba(124, 92, 255, 0.16);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --border-hairline: 15 18 38;
 
   color-scheme: light;
-}
-
-.dark {
-  --ink-900: 240 242 252;
-  --ink-700: 200 205 224;
-  --ink-500: 148 154 178;
-  --ink-300: 90 96 120;
-  --ink-100: 36 40 60;
-
-  --bg-canvas: 11 13 26;
-  --bg-surface: 22 25 44;
-  --bg-elevated: 30 34 56;
-  --border-hairline: 255 255 255;
-
-  color-scheme: dark;
 }

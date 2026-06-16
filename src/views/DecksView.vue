@@ -31,7 +31,7 @@ const filtered = computed(() => {
       class="sticky top-0 z-20 h-14 px-6 flex items-center justify-between glass-strong border-b hairline border-b-hairline/10"
     >
       <div class="flex items-center gap-3">
-        <button class="btn-ghost focus-ring h-9 px-2" @click="router.push('/')">←</button>
+        <button class="btn-ghost focus-ring h-9 px-2" @click="router.push('/app')">←</button>
         <div
           class="w-7 h-7 rounded-md bg-brand-gradient grid place-items-center text-white text-sm font-bold"
         >A</div>
@@ -39,7 +39,7 @@ const filtered = computed(() => {
       </div>
       <div class="flex items-center gap-2">
         <button class="btn-ghost focus-ring h-9 px-3 text-sm" @click="theme.toggle()">◐</button>
-        <button class="btn-shiny focus-ring h-9 px-4 text-sm" @click="router.push('/')">
+        <button class="btn-shiny focus-ring h-9 px-4 text-sm" @click="router.push('/app')">
           + 新建
         </button>
       </div>

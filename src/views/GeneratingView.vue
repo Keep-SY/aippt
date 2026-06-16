@@ -180,10 +180,16 @@ function delay(ms: number) {
 
 <template>
   <div class="relative min-h-screen overflow-hidden bg-canvas">
-    <!-- 背景：retro grid + 双 Beam -->
+    <!-- 背景：retro grid + 双 Orb -->
     <div class="absolute inset-0 retro-grid opacity-50" />
-    <div class="beam left-[-10%] top-[-15%]" />
-    <div class="beam right-[-15%] bottom-[-10%]" style="animation-delay: -7s" />
+    <div
+      class="orb animate-orb-float"
+      style="width:520px;height:520px;top:-12%;left:-10%;background:radial-gradient(circle, rgba(45,212,191,0.32), transparent 70%);"
+    />
+    <div
+      class="orb animate-orb-float"
+      style="width:420px;height:420px;bottom:-15%;right:-8%;animation-direction:reverse;animation-duration:22s;background:radial-gradient(circle, rgba(110,231,183,0.22), transparent 70%);"
+    />
 
     <main class="relative z-10 max-w-3xl mx-auto px-6 pt-16 pb-24">
       <!-- 顶部标题 -->

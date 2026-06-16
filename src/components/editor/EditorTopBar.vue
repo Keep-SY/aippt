@@ -54,7 +54,7 @@ async function doExport(kind: 'png' | 'pdf' | 'pptx') {
       <button
         class="btn-ghost focus-ring h-9 px-2"
         title="返回首页"
-        @click="router.push('/')"
+        @click="router.push('/app')"
       >←</button>
       <div
         class="w-7 h-7 rounded-md bg-brand-gradient grid place-items-center text-white text-sm font-bold"

@@ -5,7 +5,7 @@
  * - 文本改写（用于 AI 助手的 6 个快捷操作）
  */
 import { streamChat, type ChatMessage } from './ark'
-import type { Outline, OutlineSection } from '@/stores/studio'
+import type { Attachment, Outline, OutlineSection } from '@/stores/studio'
 
 const SYS_OUTLINE = `你是一位资深的演示稿架构师。任务：根据用户主题输出 PPT 大纲。
 要求：
@@ -30,6 +30,8 @@ export type RewriteKind = keyof typeof SYS_REWRITE
 interface GenerateOutlineParams {
   topic: string
   pages: number
+  /** 用户在 Landing 页贴的参考资料（文件 / URL / 文本） */
+  attachments?: Attachment[]
   onProgress?: (partial: string) => void
   signal?: AbortSignal
 }
@@ -39,9 +41,14 @@ interface GenerateOutlineParams {
  * 注：流式期间在 onProgress 暴露原始文本（用于 UI 展示打字机效果），完成后解析 JSON。
  */
 export async function generateOutline(p: GenerateOutlineParams): Promise<Outline> {
+  const userParts = [`主题：${p.topic}`, `页数：${p.pages}`]
+  const refBlock = formatAttachments(p.attachments)
+  if (refBlock) userParts.push(refBlock)
+  userParts.push('请输出 JSON。')
+
   const messages: ChatMessage[] = [
     { role: 'system', content: SYS_OUTLINE },
-    { role: 'user', content: `主题：${p.topic}\n页数：${p.pages}\n请输出 JSON。` }
+    { role: 'user', content: userParts.join('\n') }
   ]
   const text = await streamChat({
     messages,
@@ -127,4 +134,16 @@ function stripCodeFence(s: string): string {
     return t.replace(/^```[a-zA-Z]*\n?/, '').replace(/```\s*$/, '').trim()
   }
   return t
+}
+
+function formatAttachments(list?: Attachment[]): string {
+  if (!list || list.length === 0) return ''
+  const blocks = list.map((a, i) => {
+    const head = a.kind === 'url' ? `资料 ${i + 1}（链接）：${a.name}` : `资料 ${i + 1}：${a.name}`
+    return `--- ${head} ---\n${a.text}`
+  })
+  return [
+    '以下是用户提供的参考资料，请优先据此组织内容；若资料与主题冲突，以主题为准：',
+    ...blocks
+  ].join('\n')
 }

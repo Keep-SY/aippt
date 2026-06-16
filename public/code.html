@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智演 AI — 下一代 AI 演示文稿生成平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ========== RESET & VARIABLES ========== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #06060e;
+      --bg-alt: #0b0b16;
+      --surface: #11111d;
+      --surface-hover: #18182a;
+      --border: #1e1e34;
+      --accent: #7c6aff;
+      --accent-light: #a78bfa;
+      --accent-glow: rgba(124, 106, 255, 0.12);
+      --gradient: linear-gradient(135deg, #7c6aff 0%, #c084fc 50%, #e879f9 100%);
+      --green: #34d399;
+      --green-glow: rgba(52, 211, 153, 0.12);
+      --text: #ededf4;
+      --text-sec: #9494a8;
+      --text-muted: #5c5c72;
+      --font-display: 'Syne', 'Noto Sans SC', sans-serif;
+      --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ========== GRAIN OVERLAY ========== */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ========== UTILITY ========== */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .section-tag::before {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    .section-desc {
+      color: var(--text-sec);
+      font-size: 17px;
+      max-width: 560px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background: var(--gradient);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(124, 106, 255, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(124, 106, 255, 0.45);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    /* ========== SCROLL REVEAL ========== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========== NAVBAR ========== */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 16px 0;
+      transition: all 0.35s ease;
+    }
+    .navbar.scrolled {
+      background: rgba(6, 6, 14, 0.82);
+      backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid rgba(30, 30, 52, 0.5);
+      padding: 12px 0;
+    }
+    .navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+    .nav-links a {
+      font-size: 14px;
+      color: var(--text-sec);
+      transition: color 0.25s;
+      font-weight: 400;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .nav-login {
+      font-size: 14px;
+      color: var(--text-sec);
+      transition: color 0.25s;
+    }
+    .nav-login:hover { color: var(--text); }
+    .nav-cta {
+      padding: 10px 24px;
+      font-size: 13px;
+    }
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .nav-hamburger span {
+      width: 24px; height: 2px;
+      background: var(--text);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(6, 6, 14, 0.96);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+    }
+    .mobile-menu.active { display: flex; }
+    .mobile-menu a {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ========== HERO ========== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding-top: 80px;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.5;
+    }
+    .hero-orb-1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,106,255,0.3), transparent 70%);
+      top: -10%; left: -10%;
+      animation: orb-float 25s ease-in-out infinite;
+    }
+    .hero-orb-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(192,132,252,0.2), transparent 70%);
+      bottom: -15%; right: -5%;
+      animation: orb-float 20s ease-in-out infinite reverse;
+    }
+    .hero-orb-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(52,211,153,0.15), transparent 70%);
+      top: 40%; right: 30%;
+      animation: orb-float 18s ease-in-out infinite 3s;
+    }
+    @keyframes orb-float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+    .hero .container {
+      position: relative;
+      z-index: 1;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: rgba(17, 17, 29, 0.6);
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-bottom: 28px;
+      backdrop-filter: blur(8px);
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 24px;
+    }
+    .hero-title .gradient-text {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-desc {
+      font-size: 17px;
+      color: var(--text-sec);
+      margin-bottom: 40px;
+      max-width: 480px;
+      line-height: 1.8;
+    }
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .hero-stats-row {
+      display: flex;
+      gap: 40px;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .hero-stat-num {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .hero-stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Hero Mockup */
+    .hero-mockup {
+      position: relative;
+      animation: mockup-float 6s ease-in-out infinite;
+    }
+    @keyframes mockup-float {
+      0%, 100% { transform: translateY(0) rotateX(0); }
+      50% { transform: translateY(-16px) rotateX(1deg); }
+    }
+    .mockup-window {
+      background: #0d0d18;
+      border-radius: 16px;
+      border: 1px solid rgba(124,106,255,0.15);
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(124,106,255,0.05),
+        0 20px 60px rgba(0,0,0,0.5),
+        0 0 80px rgba(124,106,255,0.08);
+    }
+    .mockup-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: rgba(17,17,29,0.8);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .mockup-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .mockup-dot:nth-child(1) { background: #ff5f57; }
+    .mockup-dot:nth-child(2) { background: #febc2e; }
+    .mockup-dot:nth-child(3) { background: #28c840; }
+    .mockup-body {
+      display: grid;
+      grid-template-columns: 120px 1fr 180px;
+      min-height: 340px;
+    }
+    .mockup-sidebar {
+      padding: 16px 10px;
+      border-right: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(11,11,22,0.5);
+    }
+    .mockup-thumb {
+      width: 100%;
+      aspect-ratio: 16/10;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .mockup-thumb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+    }
+    .mockup-thumb.active {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .mockup-canvas {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .mockup-slide {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1a1a3e 0%, #0f0f2e 100%);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .mockup-slide-title {
+      position: absolute;
+      top: 28%; left: 10%;
+      width: 55%;
+      height: 14px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.85);
+    }
+    .mockup-slide-subtitle {
+      position: absolute;
+      top: 44%; left: 10%;
+      width: 40%;
+      height: 8px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.3);
+    }
+    .mockup-slide-line1 {
+      position: absolute;
+      top: 56%; left: 10%;
+      width: 70%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.12);
+    }
+    .mockup-slide-line2 {
+      position: absolute;
+      top: 64%; left: 10%;
+      width: 50%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+    }
+    .mockup-slide-chart {
+      position: absolute;
+      bottom: 12%; right: 8%;
+      width: 35%;
+      height: 40%;
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(124,106,255,0.2) 0%, rgba(124,106,255,0.05) 100%);
+      border: 1px solid rgba(124,106,255,0.15);
+    }
+    .mockup-slide-chart::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      display: flex;
+      gap: 4px;
+    }
+    .mockup-ai-panel {
+      padding: 16px 12px;
+      border-left: 1px solid rgba(255,255,255,0.04);
+      background: rgba(11,11,22,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mockup-ai-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-light);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .mockup-ai-block {
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(124,106,255,0.06);
+      border: 1px solid rgba(124,106,255,0.1);
+    }
+    .mockup-ai-line {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      margin-bottom: 6px;
+    }
+    .mockup-ai-line:last-child { margin-bottom: 0; }
+    .mockup-ai-line:nth-child(1) { width: 80%; }
+    .mockup-ai-line:nth-child(2) { width: 60%; }
+    .mockup-ai-line:nth-child(3) { width: 70%; }
+    .mockup-generating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--accent-light);
+      font-family: var(--font-mono);
+    }
+    .mockup-gen-dots span {
+      display: inline-block;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      animation: gen-bounce 1.4s ease-in-out infinite;
+    }
+    .mockup-gen-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .mockup-gen-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes gen-bounce {
+      0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* Floating badge on mockup */
+    .mockup-float-badge {
+      position: absolute;
+      top: -12px; right: -12px;
+      background: var(--gradient);
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(124,106,255,0.4);
+      z-index: 2;
+      animation: badge-float 3s ease-in-out infinite;
+    }
+    @keyframes badge-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    /* ========== LOGOS BAR ========== */
+    .logos {
+      padding: 80px 0 40px;
+      text-align: center;
+    }
+    .logos-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      letter-spacing: 0.05em;
+    }
+    .logos-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      opacity: 0.35;
+    }
+    .logo-item {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    /* ========== FEATURES ========== */
+    .features { padding: 120px 0; }
+    .features-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .features-header .section-desc { margin: 0 auto; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      position: relative;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      border: 1px solid var(--border);
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(124,106,255,0.3), rgba(52,211,153,0.3));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      background: var(--surface-hover);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .feature-icon svg {
+      width: 24px; height: 24px;
+      stroke-width: 1.8;
+    }
+    .feature-card:nth-child(1) .feature-icon { background: rgba(124,106,255,0.1); }
+    .feature-card:nth-child(1) .feature-icon svg { stroke: #a78bfa; }
+    .feature-card:nth-child(2) .feature-icon { background: rgba(52,211,153,0.1); }
+    .feature-card:nth-child(2) .feature-icon svg { stroke: #34d399; }
+    .feature-card:nth-child(3) .feature-icon { background: rgba(251,191,36,0.1); }
+    .feature-card:nth-child(3) .feature-icon svg { stroke: #fbbf24; }
+    .feature-card:nth-child(4) .feature-icon { background: rgba(244,114,182,0.1); }
+    .feature-card:nth-child(4) .feature-icon svg { stroke: #f472b6; }
+    .feature-card:nth-child(5) .feature-icon { background: rgba(56,189,248,0.1); }
+    .feature-card:nth-child(5) .feature-icon svg { stroke: #38bdf8; }
+    .feature-card:nth-child(6) .feature-icon { background: rgba(251,146,60,0.1); }
+    .feature-card:nth-child(6) .feature-icon svg { stroke: #fb923c; }
+    .feature-card h3 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-sec);
+      line-height: 1.7;
+    }
+
+    /* ========== WORKFLOW ========== */
+    .workflow { padding: 120px 0; }
+    .workflow-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .workflow-header .section-desc { margin: 0 auto; }
+    .workflow-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      position: relative;
+    }
+    .workflow-steps::before {
+      content: '';
+      position: absolute;
+      top: 60px;
+      left: calc(33.33% - 16px);
+      right: calc(33.33% - 16px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      opacity: 0.3;
+    }
+    .workflow-step {
+      text-align: center;
+    }
+    .workflow-step-num {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 28px;
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      position: relative;
+    }
+    .workflow-step:nth-child(1) .workflow-step-num {
+      background: rgba(124,106,255,0.1);
+      color: var(--accent-light);
+      border: 2px solid rgba(124,106,255,0.2);
+    }
+    .workflow-step:nth-child(2) .workflow-step-num {
+      background: rgba(167,139,250,0.1);
+      color: #c4b5fd;
+      border: 2px solid rgba(167,139,250,0.2);
+    }
+    .workflow-step:nth-child(3) .workflow-step-num {
+      background: rgba(52,211,153,0.1);
+      color: var(--green);
+      border: 2px solid rgba(52,211,153,0.2);
+    }
+    .workflow-step-num::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid rgba(124,106,255,0.08);
+    }
+    .workflow-step h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .workflow-step p {
+      font-size: 14px;
+      color: var(--text-sec);
+      max-width: 280px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ========== SHOWCASE ========== */
+    .showcase { padding: 120px 0; }
+    .showcase-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .showcase-header .section-desc { margin: 0 auto; }
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .showcase-card {
+      aspect-ratio: 16/11;
+      border-radius: var(--radius-sm);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .showcase-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .showcase-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .showcase-card:hover::after { opacity: 1; }
+    .showcase-card-label {
+      position: absolute;
+      bottom: 14px; left: 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #fff;
+      z-index: 1;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.3s;
+    }
+    .showcase-card:hover .showcase-card-label {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========== PRICING ========== */
+    .pricing { padding: 120px 0; }
+    .pricing-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .pricing-header .section-desc { margin: 0 auto; }
+    .pricing-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 40px 0 56px;
+    }
+    .pricing-toggle span {
+      font-size: 14px;
+      color: var(--text-sec);
+      transition: color 0.3s;
+    }
+    .pricing-toggle span.active { color: var(--text); }
+    .toggle-track {
+      width: 48px; height: 26px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.3s;
+    }
+    .toggle-track.active { background: var(--accent); border-color: var(--accent); }
+    .toggle-knob {
+      width: 20px; height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px; left: 2px;
+      transition: transform 0.3s ease;
+    }
+    .toggle-track.active .toggle-knob { transform: translateX(22px); }
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 32px;
+      position: relative;
+      transition: all 0.4s;
+    }
+    .pricing-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .pricing-card.featured {
+      border-color: rgba(124,106,255,0.3);
+      background: linear-gradient(180deg, rgba(124,106,255,0.05) 0%, var(--surface) 50%);
+    }
+    .pricing-card.featured::before {
+      content: '最受欢迎';
+      position: absolute;
+      top: -12px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--gradient);
+      padding: 4px 16px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .pricing-plan {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .pricing-plan-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .pricing-price {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .pricing-currency {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .pricing-amount {
+      font-family: var(--font-display);
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .pricing-period {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .pricing-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
+    }
+    .pricing-features {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .pricing-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-sec);
+    }
+    .pricing-feature svg {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      stroke: var(--green);
+      margin-top: 1px;
+    }
+    .pricing-btn {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+
+    /* ========== TESTIMONIALS ========== */
+    .testimonials { padding: 120px 0; }
+    .testimonials-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .testimonials-header .section-desc { margin: 0 auto; }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .testimonial-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      transition: all 0.4s;
+    }
+    .testimonial-card:hover {
+      border-color: rgba(124,106,255,0.2);
+      transform: translateY(-4px);
+    }
+    .testimonial-stars {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+    }
+    .testimonial-stars svg {
+      width: 16px; height: 16px;
+      fill: #fbbf24;
+    }
+    .testimonial-text {
+      font-size: 15px;
+      color: var(--text-sec);
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .testimonial-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: #fff;
+    }
+    .testimonial-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .testimonial-role {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ========== CTA BANNER ========== */
+    .cta-banner {
+      padding: 120px 0;
+    }
+    .cta-box {
+      position: relative;
+      border-radius: 24px;
+      padding: 80px 60px;
+      text-align: center;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(124,106,255,0.12) 0%, rgba(52,211,153,0.06) 100%);
+      border: 1px solid rgba(124,106,255,0.15);
+    }
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,106,255,0.15), transparent 70%);
+      top: -100px; right: -100px;
+    }
+    .cta-box::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(52,211,153,0.1), transparent 70%);
+      bottom: -80px; left: -60px;
+    }
+    .cta-box > * { position: relative; z-index: 1; }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 800;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .cta-desc {
+      color: var(--text-sec);
+      font-size: 16px;
+      max-width: 480px;
+      margin: 0 auto 36px;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ========== FOOTER ========== */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 80px 0 40px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.5fr repeat(3, 1fr);
+      gap: 48px;
+      margin-bottom: 64px;
+    }
+    .footer-brand-desc {
+      font-size: 14px;
+      color: var(--text-sec);
+      margin-top: 16px;
+      line-height: 1.7;
+      max-width: 280px;
+    }
+    .footer-col h4 {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: 0.02em;
+    }
+    .footer-col a {
+      display: block;
+      font-size: 14px;
+      color: var(--text-sec);
+      padding: 6px 0;
+      transition: color 0.25s;
+    }
+    .footer-col a:hover { color: var(--text); }
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .footer-copyright {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .footer-socials {
+      display: flex;
+      gap: 16px;
+    }
+    .footer-socials a {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+    .footer-socials a:hover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .footer-socials svg {
+      width: 16px; height: 16px;
+      stroke: var(--text-sec);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 1024px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+      .hero-mockup { max-width: 600px; margin: 0 auto; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .showcase-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-cards { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+      .testimonials-grid { grid-template-columns: 1fr; max-width: 500px; margin: 0 auto; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .nav-links, .nav-actions { display: none; }
+      .nav-hamburger { display: flex; }
+      .hero { padding-top: 100px; min-height: auto; padding-bottom: 60px; }
+      .hero-title { font-size: 2rem; }
+      .hero-stats-row { flex-wrap: wrap; gap: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .workflow-steps {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+      .workflow-steps::before { display: none; }
+      .showcase-grid { grid-template-columns: repeat(2, 1fr); }
+      .cta-box { padding: 48px 24px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+      .mockup-body { grid-template-columns: 80px 1fr 120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">S</div>
+        智演 AI
+      </a>
+      <div class="nav-links">
+        <a href="#features">功能</a>
+        <a href="#workflow">工作流</a>
+        <a href="#pricing">定价</a>
+        <a href="#testimonials">评价</a>
+      </div>
+      <div class="nav-actions">
+        <a href="#" class="nav-login">登录</a>
+        <a href="#" class="btn btn-primary nav-cta">免费开始</a>
+      </div>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#features" onclick="closeMobile()">功能</a>
+    <a href="#workflow" onclick="closeMobile()">工作流</a>
+    <a href="#pricing" onclick="closeMobile()">定价</a>
+    <a href="#testimonials" onclick="closeMobile()">评价</a>
+    <a href="#" class="btn btn-primary" style="margin-top:16px;">免费开始</a>
+  </div>
+
+  <!-- ========== HERO ========== -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-orb hero-orb-1"></div>
+      <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+    </div>
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            全新 2.0 版本已上线
+          </div>
+          <h1 class="hero-title">
+            输入想法，<br>
+            <span class="gradient-text">AI 帮你做 PPT</span>
+          </h1>
+          <p class="hero-desc">
+            告别熬夜排版。只需输入主题或上传文档，智演 AI 即刻生成专业级演示文稿——从内容大纲到视觉设计，全流程自动化。
+          </p>
+          <div class="hero-btns">
+            <a href="#" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              立即免费体验
+            </a>
+            <a href="#" class="btn btn-outline">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              观看演示
+            </a>
+          </div>
+          <div class="hero-stats-row">
+            <div>
+              <div class="hero-stat-num" data-target="1200000" data-suffix="+">0</div>
+              <div class="hero-stat-label">累计用户</div>
+            </div>
+            <div>
+              <div class="hero-stat-num" data-target="98" data-suffix="%">0</div>
+              <div class="hero-stat-label">满意度</div>
+            </div>
+            <div>
+              <div class="hero-stat-num" data-target="50" data-suffix="M+">0</div>
+              <div class="hero-stat-label">生成页数</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-mockup">
+          <div class="mockup-float-badge">AI 生成中</div>
+          <div class="mockup-window">
+            <div class="mockup-bar">
+              <div class="mockup-dot"></div>
+              <div class="mockup-dot"></div>
+              <div class="mockup-dot"></div>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-sidebar">
+                <div class="mockup-thumb active" style="background:linear-gradient(135deg,#1e1b4b,#312e81);"></div>
+                <div class="mockup-thumb" style="background:linear-gradient(135deg,#1e1b4b,#3b0764);"></div>
+                <div class="mockup-thumb" style="background:linear-gradient(135deg,#042f2e,#134e4a);"></div>
+                <div class="mockup-thumb" style="background:linear-gradient(135deg,#1c1917,#44403c);"></div>
+                <div class="mockup-thumb" style="background:linear-gradient(135deg,#172554,#1e3a5f);"></div>
+              </div>
+              <div class="mockup-canvas">
+                <div class="mockup-slide">
+                  <div class="mockup-slide-title"></div>
+                  <div class="mockup-slide-subtitle"></div>
+                  <div class="mockup-slide-line1"></div>
+                  <div class="mockup-slide-line2"></div>
+                  <div class="mockup-slide-chart"></div>
+                </div>
+              </div>
+              <div class="mockup-ai-panel">
+                <div class="mockup-ai-label">AI 助手</div>
+                <div class="mockup-ai-block">
+                  <div class="mockup-ai-line"></div>
+                  <div class="mockup-ai-line"></div>
+                  <div class="mockup-ai-line"></div>
+                </div>
+                <div class="mockup-ai-block">
+                  <div class="mockup-ai-line"></div>
+                  <div class="mockup-ai-line"></div>
+                </div>
+                <div class="mockup-generating">
+                  生成中
+                  <span class="mockup-gen-dots">
+                    <span></span><span></span><span></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== LOGOS ========== -->
+  <section class="logos">
+    <div class="container">
+      <div class="logos-label">已获得行业领先企业的信赖</div>
+      <div class="logos-row">
+        <span class="logo-item">ByteForge</span>
+        <span class="logo-item">CloudNest</span>
+        <span class="logo-item">DataPulse</span>
+        <span class="logo-item">Nexora</span>
+        <span class="logo-item">QuantumLeaf</span>
+        <span class="logo-item">SynthWave</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FEATURES ========== -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-header reveal">
+        <div class="section-tag">核心功能</div>
+        <h2 class="section-title">为什么选择智演 AI</h2>
+        <p class="section-desc">六大 AI 驱动能力，覆盖演示文稿从构思到交付的全生命周期</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22"/><path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93"/><path d="M8.56 13a8 8 0 0 0-2.3 3.08"/><path d="M15.44 13a8 8 0 0 1 2.3 3.08"/><circle cx="12" cy="6" r="1"/></svg>
+          </div>
+          <h3>AI 智能生成</h3>
+          <p>输入一句话主题，AI 自动完成内容大纲、文案撰写、版式设计，60秒交付完整演示文稿</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </div>
+          <h3>5000+ 精品模板</h3>
+          <p>覆盖商务汇报、产品发布、学术答辩等 50+ 场景，持续更新行业定制模板库</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <h3>一键美化</h3>
+          <p>智能配色、自动对齐、字体优化——一键将平庸设计升级为专业级视觉效果</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3>智能排版引擎</h3>
+          <p>基于设计原理的 AI 排版系统，自动处理对齐、留白、层级，确保每页都赏心悦目</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3>多语言支持</h3>
+          <p>支持中、英、日、韩等 30+ 种语言，一键翻译整套演示文稿，轻松应对国际化场景</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>团队实时协作</h3>
+          <p>多人同时编辑、评论、版本管理，让团队协作像编辑文档一样简单流畅</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== WORKFLOW ========== -->
+  <section class="workflow" id="workflow">
+    <div class="container">
+      <div class="workflow-header reveal">
+        <div class="section-tag">使用流程</div>
+        <h2 class="section-title">三步，完成一套专业 PPT</h2>
+        <p class="section-desc">无需设计经验，从想法到成品只需极简三步</p>
+      </div>
+      <div class="workflow-steps">
+        <div class="workflow-step reveal">
+          <div class="workflow-step-num">01</div>
+          <h3>描述你的想法</h3>
+          <p>输入主题、上传文档或粘贴大纲，告诉 AI 你想讲什么</p>
+        </div>
+        <div class="workflow-step reveal">
+          <div class="workflow-step-num">02</div>
+          <h3>AI 自动生成</h3>
+          <p>AI 分析内容结构，自动生成文案、配图、排版，60秒完成</p>
+        </div>
+        <div class="workflow-step reveal">
+          <div class="workflow-step-num">03</div>
+          <h3>导出与分享</h3>
+          <p>支持 PPT、PDF、在线演示等多种格式，一键分享给团队</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SHOWCASE ========== -->
+  <section class="showcase">
+    <div class="container">
+      <div class="showcase-header reveal">
+        <div class="section-tag">模板精选</div>
+        <h2 class="section-title">为每个场景准备的专业设计</h2>
+        <p class="section-desc">从商业计划到学术报告，海量精品模板等你探索</p>
+      </div>
+      <div class="showcase-grid reveal">
+        <div class="showcase-card" style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);">
+          <span class="showcase-card-label">商业计划</span>
+        </div>
+        <div class="showcase-card" style="background:linear-gradient(135deg,#042f2e 0%,#115e59 100%);">
+          <span class="showcase-card-label">产品发布</span>
+        </div>
+        <div class="showcase-card" style="background:linear-gradient(135deg,#450a0a 0%,#7f1d1d 100%);">
+          <span class="showcase-card-label">年度汇报</span>
+        </div>
+        <div class="showcase-card" style="background:linear-gradient(135deg,#172554 0%,#1e3a5f 100%);">
+          <span class="showcase-card-label">学术答辩</span>
+        </div>
+        <div class="showcase-card" style="background:linear-gradient(135deg,#3b0764 0%,#581c87 100%);">
+          <span class="showcase-card-label">营销方案</span>
+        </div>
+        <div class="showcase-card" style="background:linear-gradient(135deg,#1c1917 0%,#44403c 100%);">
+          <span class="showcase-card-label">融资路演</span>
+        </div>
+        <div class="showcase-card" style="background:linear-gradient(135deg,#052e16 0%,#14532d 100%);">
+          <span class="showcase-card-label">教育培训</span>
+        </div>
+        <div class="showcase-card" style="background:linear-gradient(135deg,#422006 0%,#78350f 100%);">
+          <span class="showcase-card-label">工作周报</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PRICING ========== -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <div class="pricing-header reveal">
+        <div class="section-tag">定价方案</div>
+        <h2 class="section-title">简单透明，按需选择</h2>
+        <p class="section-desc">无论个人还是企业，总有适合你的方案</p>
+      </div>
+      <div class="pricing-toggle reveal">
+        <span class="toggle-label active" data-period="monthly">月付</span>
+        <div class="toggle-track" id="pricing-toggle">
+          <div class="toggle-knob"></div>
+        </div>
+        <span class="toggle-label" data-period="yearly">年付 <span style="color:var(--green);font-size:12px;">省20%</span></span>
+      </div>
+      <div class="pricing-cards">
+        <div class="pricing-card reveal">
+          <div class="pricing-plan">免费版</div>
+          <div class="pricing-plan-desc">适合个人体验与轻度使用</div>
+          <div class="pricing-price">
+            <span class="pricing-currency">¥</span>
+            <span class="pricing-amount" data-monthly="0" data-yearly="0">0</span>
+          </div>
+          <div class="pricing-period">永久免费</div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-features">
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              每月生成 3 套演示文稿
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              基础模板库
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              导出 PDF 格式
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              单人使用
+            </div>
+          </div>
+          <a href="#" class="btn btn-outline pricing-btn">免费开始</a>
+        </div>
+
+        <div class="pricing-card featured reveal">
+          <div class="pricing-plan">专业版</div>
+          <div class="pricing-plan-desc">适合高频使用的职场人士</div>
+          <div class="pricing-price">
+            <span class="pricing-currency">¥</span>
+            <span class="pricing-amount" data-monthly="49" data-yearly="39">49</span>
+            <span class="pricing-period">/月</span>
+          </div>
+          <div class="pricing-period pricing-bill-text">按月计费</div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-features">
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              无限生成演示文稿
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              全部 5000+ 模板
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              PPT / PDF / 图片导出
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              AI 文案增强 &amp; 翻译
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              去除水印
+            </div>
+          </div>
+          <a href="#" class="btn btn-primary pricing-btn">立即订阅</a>
+        </div>
+
+        <div class="pricing-card reveal">
+          <div class="pricing-plan">企业版</div>
+          <div class="pricing-plan-desc">适合团队协作与品牌管理</div>
+          <div class="pricing-price">
+            <span class="pricing-currency">¥</span>
+            <span class="pricing-amount" data-monthly="199" data-yearly="159">199</span>
+            <span class="pricing-period">/月</span>
+          </div>
+          <div class="pricing-period pricing-bill-text">按月计费 · 每席位</div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-features">
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              专业版全部功能
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              团队实时协作
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              品牌资产管理（Logo/字体/配色）
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              管理员控制台 &amp; 权限管理
+            </div>
+            <div class="pricing-feature">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              优先技术支持 &amp; 专属客服
+            </div>
+          </div>
+          <a href="#" class="btn btn-outline pricing-btn">联系销售</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TESTIMONIALS ========== -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <div class="testimonials-header reveal">
+        <div class="section-tag">用户评价</div>
+        <h2 class="section-title">他们都在用智演 AI</h2>
+        <p class="section-desc">来自各行业用户的真实反馈</p>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card reveal">
+          <div class="testimonial-stars">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="testimonial-text">"以前每次做周报 PPT 都要花两三个小时，用智演 AI 之后，输入要点，一分钟就能生成一套精美的周报。省下来的时间可以专注在内容思考上。"</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#7c6aff,#a78bfa);">陈</div>
+            <div>
+              <div class="testimonial-name">陈思远</div>
+              <div class="testimonial-role">产品总监 · 某互联网公司</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal">
+          <div class="testimonial-stars">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="testimonial-text">"作为设计师，我原本对 AI 做 PPT 持怀疑态度。但试用后发现它的排版审美真的很在线，配色方案和留白处理甚至超过了很多初级设计师。"</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#34d399,#6ee7b7);">林</div>
+            <div>
+              <div class="testimonial-name">林雨晴</div>
+              <div class="testimonial-role">UI 设计师 · 某设计工作室</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal">
+          <div class="testimonial-stars">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="testimonial-text">"我们整个教研组都在用。上传论文摘要，AI 自动生成答辩 PPT，逻辑清晰、图表专业。学生答辩通过率明显提高了，太省心了。"</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar" style="background:linear-gradient(135deg,#f472b6,#fb7185);">王</div>
+            <div>
+              <div class="testimonial-name">王建国</div>
+              <div class="testimonial-role">教授 · 某重点大学</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA BANNER ========== -->
+  <section class="cta-banner">
+    <div class="container">
+      <div class="cta-box reveal">
+        <h2 class="cta-title">准备好用 AI 重新定义演示了吗？</h2>
+        <p class="cta-desc">加入 120 万+ 用户的选择，让每一次演示都成为专业级呈现。注册即享免费额度，无需绑定信用卡。</p>
+        <div class="cta-buttons">
+          <a href="#" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            免费开始使用
+          </a>
+          <a href="#" class="btn btn-outline">预约产品演示</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="nav-logo" style="margin-bottom:4px;">
+            <div class="nav-logo-icon">S</div>
+            智演 AI
+          </div>
+          <p class="footer-brand-desc">下一代 AI 演示文稿生成平台，让创意即刻呈现。</p>
+        </div>
+        <div class="footer-col">
+          <h4>产品</h4>
+          <a href="#">功能介绍</a>
+          <a href="#">模板市场</a>
+          <a href="#">定价方案</a>
+          <a href="#">更新日志</a>
+          <a href="#">API 接口</a>
+        </div>
+        <div class="footer-col">
+          <h4>资源</h4>
+          <a href="#">帮助中心</a>
+          <a href="#">使用教程</a>
+          <a href="#">设计博客</a>
+          <a href="#">社区论坛</a>
+          <a href="#">合作伙伴</a>
+        </div>
+        <div class="footer-col">
+          <h4>公司</h4>
+          <a href="#">关于我们</a>
+          <a href="#">加入团队</a>
+          <a href="#">隐私政策</a>
+          <a href="#">服务条款</a>
+          <a href="#">联系我们</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copyright">&copy; 2024 智演 AI. All rights reserved.</div>
+        <div class="footer-socials">
+          <a href="#" aria-label="Twitter">
+            <svg viewBox="0 0 24 24"><path d="M4 4l11.733 16h4.267l-11.733 -16h-4.267z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
+          </a>
+          <a href="#" aria-label="GitHub">
+            <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          </a>
+          <a href="#" aria-label="微信">
+            <svg viewBox="0 0 24 24"><path d="M8 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/><path d="M18 8.5c0-3.59-3.58-6.5-8-6.5S2 4.91 2 8.5c0 1.98 1.12 3.73 2.86 4.88l-.72 2.62 3-1.8c.89.25 1.84.3 2.86.3.34 0 .68-.02 1-.05"/><path d="M15.54 17.39c.15-.43.7-.68 1.13-.42l2.03 1.22-.52-1.93c-.09-.33.07-.68.37-.84 3.18-1.68 4.45-4.03 4.45-6.52C23 4.91 18.42 2 13.42 2S3.84 4.91 3.84 8.93"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script>
+    // ========== NAVBAR SCROLL ==========
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // ========== MOBILE MENU ==========
+    const hamburger = document.getElementById('nav-hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => {
+      mobileMenu.classList.toggle('active');
+    });
+    function closeMobile() {
+      mobileMenu.classList.remove('active');
+    }
+
+    // ========== SCROLL REVEAL ==========
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          // Stagger siblings
+          const parent = entry.target.parentElement;
+          const siblings = Array.from(parent.querySelectorAll('.reveal'));
+          const idx = siblings.indexOf(entry.target);
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+          }, idx * 80);
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // ========== COUNTER ANIMATION ==========
+    function animateCounter(el) {
+      const target = parseInt(el.dataset.target);
+      const suffix = el.dataset.suffix || '';
+      const duration = 1800;
+      const start = performance.now();
+      const format = (n) => {
+        if (n >= 1000000) return (n / 10000).toFixed(0) + '万';
+        if (n >= 10000) return (n / 10000).toFixed(0) + '万';
+        return n.toLocaleString();
+      };
+      function step(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        const current = Math.round(eased * target);
+        el.textContent = format(current) + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    const counters = document.querySelectorAll('.hero-stat-num');
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(c => counterObserver.observe(c));
+
+    // ========== PRICING TOGGLE ==========
+    const toggleTrack = document.getElementById('pricing-toggle');
+    const toggleLabels = document.querySelectorAll('.toggle-label');
+    const amounts = document.querySelectorAll('.pricing-amount');
+    const billTexts = document.querySelectorAll('.pricing-bill-text');
+    let isYearly = false;
+
+    toggleTrack.addEventListener('click', () => {
+      isYearly = !isYearly;
+      toggleTrack.classList.toggle('active', isYearly);
+
+      toggleLabels.forEach(l => {
+        l.classList.toggle('active', l.dataset.period === (isYearly ? 'yearly' : 'monthly'));
+      });
+
+      amounts.forEach(a => {
+        const price = isYearly ? a.dataset.yearly : a.dataset.monthly;
+        a.textContent = price;
+      });
+
+      billTexts.forEach(t => {
+        t.textContent = isYearly ? '按年计费' : '按月计费';
+      });
+    });
+
+    // ========== SMOOTH SCROLL (for older browsers) ==========
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

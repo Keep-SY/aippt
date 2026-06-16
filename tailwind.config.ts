@@ -28,8 +28,9 @@ export default {
         info: 'rgb(var(--info) / <alpha-value>)'
       },
       fontFamily: {
-        sans: ['Inter', 'PingFang SC', 'Microsoft YaHei', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'SF Mono', 'monospace']
+        sans: ['Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'system-ui', 'sans-serif'],
+        display: ['Syne', 'Noto Sans SC', 'sans-serif'],
+        mono: ['DM Mono', 'JetBrains Mono', 'SF Mono', 'monospace']
       },
       fontSize: {
         xs: ['12px', { lineHeight: '16px' }],
@@ -51,11 +52,11 @@ export default {
         xl: '24px'
       },
       boxShadow: {
-        sm: '0 1px 2px rgba(15,18,38,0.04)',
-        md: '0 8px 24px -8px rgba(15,18,38,0.10)',
-        lg: '0 24px 60px -16px rgba(124,92,255,0.18)',
-        glow: '0 0 0 4px rgba(124,92,255,0.16)',
-        ring: '0 0 0 1px rgba(15,18,38,0.06)'
+        sm: '0 1px 2px rgba(0,0,0,0.18)',
+        md: '0 8px 24px -8px rgba(0,0,0,0.45)',
+        lg: '0 24px 60px -16px rgba(45,212,191,0.18)',
+        glow: '0 0 0 4px rgba(45,212,191,0.18)',
+        ring: '0 0 0 1px rgba(255,255,255,0.06)'
       },
       backdropBlur: {
         glass: '20px'
@@ -70,8 +71,9 @@ export default {
         slow: '420ms'
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #7C5CFF 0%, #4FA8FF 100%)',
-        'brand-gradient-soft': 'linear-gradient(135deg, rgba(124,92,255,0.12) 0%, rgba(79,168,255,0.12) 100%)'
+        'brand-gradient': 'linear-gradient(135deg, #2DD4BF 0%, #6EE7B7 50%, #A7F3D0 100%)',
+        'brand-gradient-soft':
+          'linear-gradient(135deg, rgba(45,212,191,0.14) 0%, rgba(167,243,208,0.14) 100%)'
       },
       keyframes: {
         shimmer: {

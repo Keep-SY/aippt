@@ -41,6 +41,23 @@ export interface DeckSummary {
   shared?: boolean
 }
 
+export type AttachmentKind = 'file' | 'url' | 'text'
+export interface Attachment {
+  id: string
+  /** 显示名：文件名 / URL / "粘贴文本 #N" */
+  name: string
+  kind: AttachmentKind
+  /** 提取后的纯文本（已截断） */
+  text: string
+  /** 原始字节数（仅 file 有意义） */
+  bytes?: number
+}
+
+/** 单条附件最多保留多少字符（防止 prompt 爆炸） */
+export const ATTACHMENT_MAX_CHARS = 8000
+/** 所有附件合计最多多少字符 */
+export const ATTACHMENT_TOTAL_MAX_CHARS = 24000
+
 const uid = () => Math.random().toString(36).slice(2, 10)
 
 function buildEmptyOutline(): Outline {
@@ -142,6 +159,28 @@ export const useStudioStore = defineStore('studio', () => {
     decks.value.unshift({ ...src, id: uid(), title: src.title + ' 副本', updatedAt: Date.now() })
   }
 
+  // —— Attachments（Landing 页"文档"按钮的产物，作为大纲生成的参考资料） —— //
+  const attachments = ref<Attachment[]>([])
+  function addAttachment(a: Omit<Attachment, 'id'>): Attachment {
+    const item: Attachment = { id: uid(), ...a }
+    // 单条截断
+    if (item.text.length > ATTACHMENT_MAX_CHARS) {
+      item.text = item.text.slice(0, ATTACHMENT_MAX_CHARS)
+    }
+    attachments.value.push(item)
+    return item
+  }
+  function removeAttachment(id: string) {
+    attachments.value = attachments.value.filter((a) => a.id !== id)
+  }
+  function clearAttachments() {
+    attachments.value = []
+  }
+  /** 合计字符数（用于 UI 提示与上限保护） */
+  const attachmentTotalChars = computed(() =>
+    attachments.value.reduce((sum, a) => sum + a.text.length, 0)
+  )
+
   return {
     outline,
     setTopic,
@@ -160,6 +199,11 @@ export const useStudioStore = defineStore('studio', () => {
     selectTemplate,
     decks,
     removeDeck,
-    duplicateDeck
+    duplicateDeck,
+    attachments,
+    attachmentTotalChars,
+    addAttachment,
+    removeAttachment,
+    clearAttachments
   }
 })

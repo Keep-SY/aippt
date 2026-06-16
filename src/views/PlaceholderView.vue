@@ -13,7 +13,7 @@ const title = computed(() => (route.meta.title as string) ?? '占位页面')
       <div class="text-xs uppercase tracking-widest text-ink-500 mb-3">Coming Soon</div>
       <div class="text-xl font-semibold mb-2">{{ title }}</div>
       <p class="text-ink-500 text-sm mb-6">该模块将在后续阶段实现。</p>
-      <button class="btn-ghost focus-ring" @click="router.push('/')">← 返回首页</button>
+      <button class="btn-ghost focus-ring" @click="router.push('/app')">← 返回首页</button>
     </div>
   </div>
 </template>

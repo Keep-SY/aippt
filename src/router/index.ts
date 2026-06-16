@@ -3,8 +3,15 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
+    name: 'home',
+    component: () => import('@/views/HomeView.vue'),
+    meta: { title: '智演 AI · AI Slide Studio' }
+  },
+  {
+    path: '/app',
     name: 'landing',
-    component: () => import('@/views/LandingView.vue')
+    component: () => import('@/views/LandingView.vue'),
+    meta: { title: '开始创作' }
   },
   {
     path: '/outline',

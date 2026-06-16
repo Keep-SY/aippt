@@ -39,6 +39,7 @@ async function draftOutline() {
     const o = await generateOutline({
       topic: studio.outline.topic,
       pages: studio.outline.pages,
+      attachments: studio.attachments,
       signal: abortCtrl.signal
     })
     studio.outline.topic = o.topic
@@ -124,7 +125,7 @@ onMounted(() => {
       class="sticky top-0 z-20 h-14 px-6 flex items-center justify-between glass-strong border-b hairline border-b-hairline/10"
     >
       <div class="flex items-center gap-3 min-w-0">
-        <button class="btn-ghost focus-ring h-9 px-2" @click="router.push('/')">←</button>
+        <button class="btn-ghost focus-ring h-9 px-2" @click="router.push('/app')">←</button>
         <div
           class="w-7 h-7 rounded-md bg-brand-gradient grid place-items-center text-white text-sm font-bold"
         >A</div>
@@ -279,7 +280,7 @@ onMounted(() => {
       class="fixed bottom-0 inset-x-0 h-16 z-20 glass-strong border-t hairline border-t-hairline/10"
     >
       <div class="max-w-3xl mx-auto h-full px-6 flex items-center justify-between">
-        <button class="btn-ghost focus-ring" @click="router.push('/')">← 上一步</button>
+        <button class="btn-ghost focus-ring" @click="router.push('/app')">← 上一步</button>
         <button
           class="btn-shiny focus-ring h-10 px-6"
           :disabled="studio.outline.sections.length === 0 || aiBusy"
