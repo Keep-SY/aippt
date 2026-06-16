@@ -33,14 +33,14 @@ export default {
         mono: ['DM Mono', 'JetBrains Mono', 'SF Mono', 'monospace']
       },
       fontSize: {
-        xs: ['12px', { lineHeight: '16px' }],
-        sm: ['13px', { lineHeight: '20px' }],
-        base: ['14px', { lineHeight: '22px' }],
-        md: ['16px', { lineHeight: '24px' }],
-        lg: ['20px', { lineHeight: '28px' }],
-        xl: ['28px', { lineHeight: '36px' }],
-        '2xl': ['40px', { lineHeight: '48px' }],
-        '3xl': ['56px', { lineHeight: '64px' }]
+        xs: ['13px', { lineHeight: '18px' }],
+        sm: ['14px', { lineHeight: '22px' }],
+        base: ['16px', { lineHeight: '24px' }],
+        md: ['18px', { lineHeight: '26px' }],
+        lg: ['22px', { lineHeight: '30px' }],
+        xl: ['32px', { lineHeight: '40px' }],
+        '2xl': ['44px', { lineHeight: '52px' }],
+        '3xl': ['60px', { lineHeight: '68px' }]
       },
       spacing: {
         '4.5': '18px'
