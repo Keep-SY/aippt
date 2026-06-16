@@ -1,5 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import {
+  fallbackContentSchemas,
+  type SlideSchema
+} from '@/services/slideSchema'
+import {
+  renderSchemaToFabricJson,
+  type RenderTheme
+} from '@/composables/useSlideRenderer'
 
 /**
  * Slide / Deck 数据模型
@@ -17,6 +25,8 @@ export interface Slide {
   title: string
   /** Fabric Canvas 整页序列化 */
   fabricJson?: unknown
+  /** AI 给出的页面级语义结构（用于后续再编辑/重渲染） */
+  schema?: SlideSchema
   elements: SlideElement[]
   background?: string
 }
@@ -169,82 +179,23 @@ export const useDeckStore = defineStore('deck', () => {
   /**
    * 用 outline + template 配色构建整本 deck
    * - outline: { topic, sections: [{ title, bullets }] }
-   * - templateBg: CSS gradient 字符串（用作每页背景）
-   * - accent: 强调色（hex），用于装饰条
+   * - template: 主题（背景渐变 / accent 色 / 字体族）
+   * - schemas: 可选；若提供则按 layout 渲染各页，否则用 fallback（每页都是 content）
    */
   function buildFromOutline(
     outline: { topic: string; sections: { title: string; bullets: { text: string }[] }[] },
-    template: { bg: string; accent: string; font: 'sans' | 'serif' | 'mono' }
+    template: RenderTheme,
+    schemas?: SlideSchema[]
   ) {
-    const fontFamily =
-      template.font === 'serif'
-        ? 'Georgia, serif'
-        : template.font === 'mono'
-          ? 'JetBrains Mono, monospace'
-          : 'Inter, PingFang SC, sans-serif'
+    const finalSchemas =
+      schemas && schemas.length > 0 ? schemas : fallbackContentSchemas(outline)
 
-    const slides: Slide[] = outline.sections.map((s, idx) => ({
+    const slides: Slide[] = finalSchemas.map((schema) => ({
       id: uid(),
-      title: s.title,
+      title: schema.title,
       elements: [],
-      fabricJson: {
-        version: '6.0.0',
-        // background 通过 backgroundImage 注入更靠谱，但 Fabric loadFromJSON 不支持 CSS gradient。
-        // 这里 fallback 用浅色背景 + 一个全屏渐变矩形铺底
-        background: '#FFFFFF',
-        objects: [
-          // 底色矩形（模拟模板背景）
-          {
-            type: 'Rect',
-            left: 0,
-            top: 0,
-            width: SLIDE_W,
-            height: SLIDE_H,
-            // Fabric 6 支持 fill 为 gradient 对象
-            fill: parseGradient(template.bg),
-            selectable: false,
-            evented: false,
-            name: 'bg'
-          },
-          {
-            type: 'Textbox',
-            left: 96,
-            top: idx === 0 ? 280 : 120,
-            width: SLIDE_W - 192,
-            fontSize: idx === 0 ? 72 : 48,
-            fontWeight: 700,
-            fontFamily,
-            fill: '#FFFFFF',
-            text: s.title,
-            textAlign: 'left',
-            name: 'title'
-          },
-          ...(s.bullets || []).slice(0, 5).map((b, bi) => ({
-            type: 'Textbox' as const,
-            left: 96,
-            top: (idx === 0 ? 380 : 220) + bi * 56,
-            width: SLIDE_W - 192,
-            fontSize: idx === 0 ? 28 : 24,
-            fontFamily,
-            fill: 'rgba(255,255,255,0.88)',
-            text: idx === 0 ? b.text : '· ' + b.text,
-            textAlign: 'left',
-            name: `bullet-${bi}`
-          })),
-          // 装饰条
-          {
-            type: 'Rect',
-            left: 96,
-            top: SLIDE_H - 100,
-            width: 60,
-            height: 4,
-            rx: 2,
-            ry: 2,
-            fill: template.accent,
-            name: 'accent-bar'
-          }
-        ]
-      }
+      schema,
+      fabricJson: renderSchemaToFabricJson(schema, template)
     }))
 
     current.value = {
@@ -271,24 +222,3 @@ export const useDeckStore = defineStore('deck', () => {
     buildFromOutline
   }
 })
-
-/**
- * 解析 CSS gradient 字符串为 Fabric Gradient 配置
- * 仅支持 linear-gradient(angle, color1, color2, ...) 这种最常见形式
- * 不识别时返回纯色（第一个 color 或灰色）
- */
-function parseGradient(css: string): unknown {
-  const m = css.match(/linear-gradient\(([^,]+),(.+)\)/)
-  if (!m) return '#7C5CFF'
-  const stops = m[2]
-    .split(/,(?![^()]*\))/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-  if (stops.length < 2) return stops[0] || '#7C5CFF'
-  // Fabric Gradient（type linear，左上到右下作为简化）
-  return {
-    type: 'linear',
-    coords: { x1: 0, y1: 0, x2: 1280, y2: 720 },
-    colorStops: stops.map((c, i) => ({ offset: i / (stops.length - 1), color: c }))
-  }
-}

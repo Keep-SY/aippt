@@ -5,6 +5,11 @@ import { useStudioStore } from '@/stores/studio'
 import { useDeckStore } from '@/stores/deck'
 import { expandSection } from '@/services/ai'
 import { isArkConfigured } from '@/services/ark'
+import {
+  generateSlideSchemas,
+  fallbackContentSchemas,
+  type SlideSchema
+} from '@/services/slideSchema'
 import GenerationProgress from '@/components/generating/GenerationProgress.vue'
 import GeneratedThumbnailStrip from '@/components/generating/GeneratedThumbnailStrip.vue'
 import GenerationSteps from '@/components/generating/GenerationSteps.vue'
@@ -84,6 +89,16 @@ async function run() {
 
     // —— 3. 逐章节生成（流式打字机），同时 push 缩略图 ——
     setStep('pages', 'active')
+    // 同时并发请求结构化 schema，让"打字机"和"页面布局"叠在一起，节省时长
+    const schemaPromise: Promise<SlideSchema[] | null> = generateSlideSchemas({
+      outline: studio.outline,
+      attachments: studio.attachments,
+      signal: ctrl.signal
+    }).catch((e) => {
+      console.warn('generateSlideSchemas failed', e)
+      return null
+    })
+
     for (let i = 0; i < studio.outline.sections.length; i++) {
       if (ctrl.signal.aborted) return
       currentPage.value = i + 1
@@ -127,11 +142,16 @@ async function run() {
     // —— 5. 排版优化：把 outline + 模板写入 deck ——
     setStep('layout', 'active')
     progress.value = 96
-    deck.buildFromOutline(studio.outline, {
-      bg: studio.selectedTemplate.bg,
-      accent: studio.selectedTemplate.accent,
-      font: studio.selectedTemplate.font
-    })
+    const schemas = (await schemaPromise) ?? fallbackContentSchemas(studio.outline)
+    deck.buildFromOutline(
+      studio.outline,
+      {
+        bg: studio.selectedTemplate.bg,
+        accent: studio.selectedTemplate.accent,
+        font: studio.selectedTemplate.font
+      },
+      schemas
+    )
     await delay(280)
     progress.value = 100
     setStep('layout', 'done')
